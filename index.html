@@ -212,12 +212,26 @@ function solve(cells,n,from,to){
     for(const [j,d] of nbrs(i,n)){if(!(cells[i]&d)&&prev[j]<0){prev[j]=i;q.push(j)}}}
   const p=[to];let k=to;while(k!==from){k=prev[k];p.push(k)}return p.reverse();
 }
+/* make the goal a dead end: close its side branches, then reconnect those parts elsewhere */
+function leafGoal(cells,n,mask,s,g){
+  const p=solve(cells,n,s,g),prev=p[p.length-2];
+  for(const [j,d,b] of nbrs(g,n))if(j!==prev&&!(cells[g]&d)){cells[g]|=d;cells[j]|=b}
+  for(let guard=0;guard<n*n;guard++){
+    const seen=new Uint8Array(n*n),q=[s];seen[s]=1;
+    for(let h=0;h<q.length;h++){const i=q[h];if(i===g)continue;for(const [j,d] of nbrs(i,n))if(!(cells[i]&d)&&!seen[j]){seen[j]=1;q.push(j)}}
+    const lost=[];for(let i=0;i<n*n;i++)if(mask[i]&&!seen[i])lost.push(i);
+    if(!lost.length)return;
+    const opts=[];for(const i of lost)for(const [j,d,b] of nbrs(i,n))if(mask[j]&&seen[j]&&j!==g)opts.push([i,j,d,b]);
+    if(!opts.length)return;
+    const [i,j,d,b]=pick(opts);cells[i]&=~d;cells[j]&=~b;
+  }
+}
 function newMaze(n,shape,k){
   if(shape==='mix')shape=pick(SHAPE_KEYS);
   const mask=buildMask(n,shape);let s=-1,g=-1;
   for(let i=0;i<n*n;i++)if(mask[i]){const v=i%n+(i/n|0);if(s<0||v<s%n+(s/n|0))s=i;if(g<0||v>=g%n+(g/n|0))g=i}
   let cells=null,len=0;
-  for(let t=0;t<6;t++){const c=carve(n,mask,s),l=solve(c,n,s,g).length;if(l>len){len=l;cells=c}}
+  for(let t=0;t<6;t++){const c=carve(n,mask,s);leafGoal(c,n,mask,s,g);const l=solve(c,n,s,g).length;if(l>len){len=l;cells=c}}
   const pop=v=>(v&1)+(v>>1&1)+(v>>2&1)+(v>>3&1);
   const pool=[];for(let i=0;i<n*n;i++)if(mask[i]&&i!==s&&i!==g)pool.push(i);
   for(let i=pool.length-1;i>0;i--){const j=rnd()*(i+1)|0;[pool[i],pool[j]]=[pool[j],pool[i]]}

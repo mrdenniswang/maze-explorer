@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Maze Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
@@ -15,6 +15,8 @@
 :root{color-scheme:light dark;--bg:light-dark(#fff4d6,#1c1934);--ink:light-dark(#2b2340,#f6f1ff);--card:light-dark(#ffffff,#2a2648);--soft:light-dark(#efd9a3,#141127);--accent:#ff6b3d;--sun:#ffc93c}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+html,body,button{touch-action:manipulation}
+#game,#win{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Baloo 2",ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;overflow-x:clip;min-height:100vh;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-user-select:none;user-select:none}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
@@ -388,6 +390,8 @@ function frame(){
     if(!parts.length)fc.clearRect(0,0,fx.width,fx.height)}
   requestAnimationFrame(frame);
 }
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 drawHome();frame();
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(screen==='home')drawHome()},200)});
 }
